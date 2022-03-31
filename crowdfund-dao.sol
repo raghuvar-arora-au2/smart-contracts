@@ -13,13 +13,24 @@ contract CrowdFunding{
     enum State{ Success, onGoing, Failure}
     State public currentState;
 
+    struct Request{
+        string description;
+        address payable recipient;
+        uint value;
+        bool completed;
+        uint noOfVoters;
+        uint countOfApprovals;
+    }
 
+    mapping(uint => Request) requests;
+    uint public numRequests;
     constructor(uint _goalAmount, uint _deadline, uint _minimumContribution){
         goalAmount=_goalAmount;
         deadline=block.timestamp+_deadline;
         manager=msg.sender;
         minimumContribution= _minimumContribution;
         currentState=State.onGoing;
+        // numRequests=0;
     }
 
     function contribute() public payable{
@@ -51,5 +62,22 @@ contract CrowdFunding{
         contributors[msg.sender]=0;
         
     }
+
+    modifier onlyManager(){
+        require(msg.sender==manager);
+        _;
+    }
+
+    function createRequest(string memory _description, address payable _recip, uint _value) public onlyManager{
+        Request storage newRequest=requests[numRequests];
+        numRequests++;
+        newRequest.description=_description;
+        newRequest.recipient=_recip;
+        newRequest.value=_value;
+        newRequest.noOfVoters=0;
+        newRequest.completed=false;
+
+    }
+
     
 }
