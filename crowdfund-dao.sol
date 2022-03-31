@@ -20,6 +20,7 @@ contract CrowdFunding{
         bool completed;
         uint noOfVoters;
         uint countOfApprovals;
+        mapping(address=> bool)  voted ;
     }
 
     mapping(uint => Request) requests;
@@ -76,6 +77,28 @@ contract CrowdFunding{
         newRequest.value=_value;
         newRequest.noOfVoters=0;
         newRequest.completed=false;
+
+    }
+
+    function vote(bool approval,uint requestNumber) public {
+        require(contributors[msg.sender]>0);
+        require(requests[requestNumber].completed==false);
+        require(requests[requestNumber].voted[msg.sender]==false);
+
+        if(approval){
+            requests[requestNumber].countOfApprovals++;
+            requests[requestNumber].noOfVoters++;
+            requests[requestNumber].voted[msg.sender]=true;
+        }
+    }
+
+    function makePayment(uint requestNumber ) payable public onlyManager{
+        require(requests[requestNumber].completed==false);
+
+        require((2*requests[requestNumber].countOfApprovals)>requests[requestNumber].noOfVoters, "voters did not approve" );
+
+        requests[requestNumber].recipient.transfer(requests[requestNumber].value);
+        requests[requestNumber].completed=true;
 
     }
 
